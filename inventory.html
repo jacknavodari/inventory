@@ -1,0 +1,2095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Inventory Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #8b5cf6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #06b6d4;
+            --dark-color: #1f2937;
+            --light-color: #f8fafc;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark-color);
+        }
+
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: var(--shadow-xl);
+            margin: 20px;
+            min-height: calc(100vh - 40px);
+            overflow: hidden;
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            min-height: 100%;
+            padding: 2rem 0;
+            position: relative;
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .sidebar-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo {
+            text-align: center;
+            padding: 0 2rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 2rem;
+        }
+
+        .logo h2 {
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .logo p {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        .nav-item {
+            margin: 0.5rem 1rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-item:hover::before {
+            left: 100%;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-item i {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .content-area {
+            padding: 2rem;
+            background: var(--light-color);
+            min-height: 100vh;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-header {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem 2rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin: 0;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            outline: none;
+        }
+
+        .btn {
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color) 0%, #d97706 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .table {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border: none;
+            padding: 1rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .table tbody td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .table tbody tr:hover {
+            background: #f8fafc;
+            transform: scale(1.01);
+        }
+
+        .badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-primary { background: var(--primary-color); color: white; }
+        .badge-success { background: var(--success-color); color: white; }
+        .badge-warning { background: var(--warning-color); color: white; }
+        .badge-danger { background: var(--danger-color); color: white; }
+        .badge-info { background: var(--info-color); color: white; }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-box input {
+            padding-left: 3rem;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            background: white;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .filter-tab:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .filter-tab.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .progress {
+            height: 8px;
+            border-radius: 4px;
+            background: var(--border-color);
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transition: width 0.3s ease;
+        }
+
+        .alert {
+            border-radius: 12px;
+            border: none;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            color: #065f46;
+            border-left: 4px solid var(--success-color);
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            color: #92400e;
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+            color: #991b1b;
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 16px 16px 0 0;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                margin: 10px;
+                min-height: calc(100vh - 20px);
+            }
+            
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -100%;
+                width: 280px;
+                height: 100vh;
+                z-index: 1000;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.show {
+                left: 0;
+            }
+            
+            .content-area {
+                padding: 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem;
+            font-size: 1.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        #loading-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        #loading-overlay .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        #loading-overlay p {
+            font-size: 1.2rem;
+            color: var(--dark-color);
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-overlay">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p>Loading application...</p>
+    </div>
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <div class="main-container">
+        <div class="row g-0 h-100">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2">
+                <div class="sidebar" id="sidebar">
+                    <div class="sidebar-content">
+                        <div class="logo">
+                            <h2><i class="bi bi-boxes"></i> InvenPro</h2>
+                            <p>Advanced Inventory System</p>
+                        </div>
+                        
+                        <nav>
+                            <div class="nav-item active" onclick="showTab('dashboard')">
+                                <a href="#"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                            </div>
+                            <div class="nav-item" onclick="showTab('inventory')">
+                                <a href="#"><i class="bi bi-box-seam"></i> Inventory</a>
+                            </div>
+                            <div class="nav-item" onclick="showTab('categories')">
+                                <a href="#"><i class="bi bi-tags"></i> Categories</a>
+                            </div>
+                            <div class="nav-item" onclick="showTab('suppliers')">
+                                <a href="#"><i class="bi bi-truck"></i> Suppliers</a>
+                            </div>
+                            <div class="nav-item" onclick="showTab('analytics')">
+                                <a href="#"><i class="bi bi-graph-up"></i> Analytics</a>
+                            </div>
+                            <div class="nav-item" onclick="showTab('reports')">
+                                <a href="#"><i class="bi bi-file-text"></i> Reports</a>
+                            </div>
+                            <div class="nav-item" onclick="showTab('alerts')">
+                                <a href="#"><i class="bi bi-bell"></i> Alerts</a>
+                            </div>
+                            <div class="nav-item" onclick="showTab('settings')">
+                                <a href="#"><i class="bi bi-gear"></i> Settings</a>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10">
+                <div class="content-area">
+                    <!-- Dashboard Tab -->
+                    <div id="dashboard" class="tab-content active">
+                        <div class="page-header">
+                            <h1 class="page-title">Dashboard Overview</h1>
+                            <p class="page-subtitle">Welcome back! Here's what's happening with your inventory today.</p>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white;">
+                                    <i class="bi bi-box-seam"></i>
+                                </div>
+                                <div class="stat-value" id="totalItems">0</div>
+                                <div class="stat-label">Total Items</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">
+                                    <i class="bi bi-currency-dollar"></i>
+                                </div>
+                                <div class="stat-value" id="totalValue">$0</div>
+                                <div class="stat-label">Total Value</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                </div>
+                                <div class="stat-value" id="lowStockItems">0</div>
+                                <div class="stat-label">Low Stock</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2); color: white;">
+                                    <i class="bi bi-tags"></i>
+                                </div>
+                                <div class="stat-value" id="totalCategories">0</div>
+                                <div class="stat-label">Categories</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title">Recent Activity</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="recentActivity">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="stat-icon me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #10b981, #059669); color: white;">
+                                                    <i class="bi bi-plus-lg"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-semibold">New item added</div>
+                                                    <small class="text-muted">iPhone 15 Pro added to Electronics</small>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="stat-icon me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">
+                                                    <i class="bi bi-arrow-down"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-semibold">Low stock alert</div>
+                                                    <small class="text-muted">Gaming Headset quantity below threshold</small>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="stat-icon me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white;">
+                                                    <i class="bi bi-arrow-repeat"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-semibold">Stock updated</div>
+                                                    <small class="text-muted">Office Chair quantity updated to 25</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title">Quick Actions</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="d-grid gap-2">
+                                            <button class="btn btn-primary" onclick="showTab('inventory')">
+                                                <i class="bi bi-plus-lg me-2"></i>Add New Item
+                                            </button>
+                                            <button class="btn btn-success" onclick="showTab('categories')">
+                                                <i class="bi bi-tags me-2"></i>Manage Categories
+                                            </button>
+                                            <button class="btn btn-warning" onclick="showTab('reports')">
+                                                <i class="bi bi-file-text me-2"></i>Generate Report
+                                            </button>
+                                            <button class="btn btn-danger" onclick="showTab('alerts')">
+                                                <i class="bi bi-bell me-2"></i>View Alerts
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inventory Tab -->
+                    <div id="inventory" class="tab-content">
+                        <div class="page-header">
+                            <h1 class="page-title">Inventory Management</h1>
+                            <p class="page-subtitle">Manage your products, track stock levels, and update inventory information.</p>
+                        </div>
+
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title">Add New Item</h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="inventoryForm">
+                                    <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <label for="itemName" class="form-label">Item Name</label>
+                                            <input type="text" class="form-control" id="itemName" required>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label for="itemSKU" class="form-label">SKU</label>
+                                            <input type="text" class="form-control" id="itemSKU" required>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label for="itemQuantity" class="form-label">Quantity</label>
+                                            <input type="number" class="form-control" id="itemQuantity" required>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label for="itemPrice" class="form-label">Price ($)</label>
+                                            <input type="number" step="0.01" class="form-control" id="itemPrice" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label for="itemCategory" class="form-label">Category</label>
+                                            <select class="form-select" id="itemCategory">
+                                                <option value="Electronics">Electronics</option>
+                                                <option value="Clothing">Clothing</option>
+                                                <option value="Furniture">Furniture</option>
+                                                <option value="Books">Books</option>
+                                                <option value="Sports">Sports</option>
+                                                <option value="Home & Garden">Home & Garden</option>
+                                                <option value="Automotive">Automotive</option>
+                                                <option value="Health & Beauty">Health & Beauty</option>
+                                                <option value="Toys & Games">Toys & Games</option>
+                                                <option value="Food & Beverages">Food & Beverages</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label for="itemSupplier" class="form-label">Supplier</label>
+                                            <select class="form-select" id="itemSupplier">
+                                                <option value="TechCorp">TechCorp</option>
+                                                <option value="FashionHub">FashionHub</option>
+                                                <option value="FurniturePlus">FurniturePlus</option>
+                                                <option value="BookWorld">BookWorld</option>
+                                                <option value="SportsMart">SportsMart</option>
+                                                <option value="HomeDepot">HomeDepot</option>
+                                                <option value="AutoParts Inc">AutoParts Inc</option>
+                                                <option value="BeautySupply">BeautySupply</option>
+                                                <option value="ToyLand">ToyLand</option>
+                                                <option value="FoodCorp">FoodCorp</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label for="itemMinStock" class="form-label">Min Stock</label>
+                                            <input type="number" class="form-control" id="itemMinStock" value="5">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="itemDescription" class="form-label">Description</label>
+                                            <input type="text" class="form-control" id="itemDescription" placeholder="Optional description">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label for="itemLocation" class="form-label">Storage Location</label>
+                                            <input type="text" class="form-control" id="itemLocation" placeholder="Warehouse A-1-5">
+                                        </div>
+                                        <div class="col-md-12">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bi bi-plus-lg me-2"></i>Add Item
+                                            </button>
+                                            <button type="button" class="btn btn-secondary ms-2" onclick="resetForm()">
+                                                <i class="bi bi-arrow-clockwise me-2"></i>Reset
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">Current Inventory</h5>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-success btn-sm" onclick="exportInventory()">
+                                        <i class="bi bi-download me-1"></i>Export
+                                    </button>
+                                    <button class="btn btn-primary btn-sm" onclick="importInventory()">
+                                        <i class="bi bi-upload me-1"></i>Import
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="search-box">
+                                    <i class="bi bi-search"></i>
+                                    <input type="text" class="form-control" id="searchInput" placeholder="Search items by name, SKU, or category...">
+                                </div>
+
+                                <div class="filter-tabs">
+                                    <div class="filter-tab active" onclick="filterByCategory('all')">All Items</div>
+                                    <div class="filter-tab" onclick="filterByCategory('Electronics')">Electronics</div>
+                                    <div class="filter-tab" onclick="filterByCategory('Clothing')">Clothing</div>
+                                    <div class="filter-tab" onclick="filterByCategory('Furniture')">Furniture</div>
+                                    <div class="filter-tab" onclick="filterByCategory('low-stock')">Low Stock</div>
+                                </div>
+                                
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>SKU</th>
+                                                <th>Item</th>
+                                                <th>Category</th>
+                                                <th>Supplier</th>
+                                                <th>Qty</th>
+                                                <th>Price</th>
+                                                <th>Total Value</th>
+                                                <th>Location</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="inventoryTable">
+                                            <!-- Items will appear here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Categories Tab -->
+                    <div id="categories" class="tab-content">
+                        <div class="page-header">
+                            <h1 class="page-title">Category Management</h1>
+                            <p class="page-subtitle">Organize your inventory with custom categories and subcategories.</p>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title">Add New Category</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="categoryForm">
+                                            <div class="mb-3">
+                                                <label for="categoryName" class="form-label">Category Name</label>
+                                                <input type="text" class="form-control" id="categoryName" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="categoryDescription" class="form-label">Description</label>
+                                                <textarea class="form-control" id="categoryDescription" rows="3"></textarea>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="categoryColor" class="form-label">Color</label>
+                                                <input type="color" class="form-control" id="categoryColor" value="#6366f1">
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bi bi-plus-lg me-2"></i>Add Category
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title">Category Overview</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="categoriesGrid" class="row">
+                                            <!-- Categories will appear here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Suppliers Tab -->
+                    <div id="suppliers" class="tab-content">
+                        <div class="page-header">
+                            <h1 class="page-title">Supplier Management</h1>
+                            <p class="page-subtitle">Manage your supplier relationships and contact information.</p>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title">Add New Supplier</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="supplierForm">
+                                            <div class="mb-3">
+                                                <label for="supplierName" class="form-label">Company Name</label>
+                                                <input type="text" class="form-control" id="supplierName" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="supplierContact" class="form-label">Contact Person</label>
+                                                <input type="text" class="form-control" id="supplierContact">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="supplierEmail" class="form-label">Email</label>
+                                                <input type="email" class="form-control" id="supplierEmail">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="supplierPhone" class="form-label">Phone</label>
+                                                <input type="tel" class="form-control" id="supplierPhone">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="supplierAddress" class="form-label">Address</label>
+                                                <textarea class="form-control" id="supplierAddress" rows="3"></textarea>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bi bi-plus-lg me-2"></i>Add Supplier
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-7">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title">Supplier Directory</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="suppliersGrid">
+                                            <!-- Suppliers will appear here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Tab -->
+                    <div id="analytics" class="tab-content">
+                        <div class="page-header">
+                            <h1 class="page-title">Analytics & Insights</h1>
+                            <p class="page-subtitle">Analyze your inventory performance and trends.</p>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="chart-container">
+                                    <h5 class="mb-3">Inventory Value by Category</h5>
+                                    <canvas id="categoryChart" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="chart-container">
+                                    <h5 class="mb-3">Stock Levels Overview</h5>
+                                    <canvas id="stockChart" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title">Top Items by Value</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="topItemsByValue">
+                                            <!-- Top items will appear here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title">Low Stock Items</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="lowStockList">
+                                            <!-- Low stock items will appear here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title">Category Distribution</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="categoryDistribution">
+                                            <!-- Category distribution will appear here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reports Tab -->
+                    <div id="reports" class="tab-content">
+                        <div class="page-header">
+                            <h1 class="page-title">Reports & Export</h1>
+                            <p class="page-subtitle">Generate detailed reports and export your inventory data.</p>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title">Generate Report</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="reportForm">
+                                            <div class="mb-3">
+                                                <label for="reportType" class="form-label">Report Type</label>
+                                                <select class="form-select" id="reportType">
+                                                    <option value="full">Full Inventory Report</option>
+                                                    <option value="low-stock">Low Stock Report</option>
+                                                    <option value="category">Category Report</option>
+                                                    <option value="supplier">Supplier Report</option>
+                                                    <option value="value">Inventory Valuation</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="reportFormat" class="form-label">Format</label>
+                                                <select class="form-select" id="reportFormat">
+                                                    <option value="pdf">PDF</option>
+                                                    <option value="excel">Excel</option>
+                                                    <option value="csv">CSV</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="reportDate" class="form-label">Report Date</label>
+                                                <input type="date" class="form-control" id="reportDate">
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bi bi-file-text me-2"></i>Generate Report
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title">Recent Reports</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="recentReports">
+                                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 border rounded">
+                                                <div>
+                                                    <div class="fw-semibold">Full Inventory Report</div>
+                                                    <small class="text-muted">Generated today at 2:30 PM</small>
+                                                </div>
+                                                <button class="btn btn-sm btn-outline-primary">Download</button>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 border rounded">
+                                                <div>
+                                                    <div class="fw-semibold">Low Stock Alert</div>
+                                                    <small class="text-muted">Generated yesterday at 9:15 AM</small>
+                                                </div>
+                                                <button class="btn btn-sm btn-outline-primary">Download</button>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                                                <div>
+                                                    <div class="fw-semibold">Category Analysis</div>
+                                                    <small class="text-muted">Generated 2 days ago</small>
+                                                </div>
+                                                <button class="btn btn-sm btn-outline-primary">Download</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alerts Tab -->
+                    <div id="alerts" class="tab-content">
+                        <div class="page-header">
+                            <h1 class="page-title">Alerts & Notifications</h1>
+                            <p class="page-subtitle">Stay informed about important inventory events and thresholds.</p>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title">Active Alerts</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="alertsList">
+                                            <!-- Alerts will appear here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title">Alert Settings</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="alertSettingsForm">
+                                            <div class="mb-3">
+                                                <label for="lowStockThreshold" class="form-label">Low Stock Threshold</label>
+                                                <input type="number" class="form-control" id="lowStockThreshold" value="5">
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="emailAlerts" checked>
+                                                    <label class="form-check-label" for="emailAlerts">
+                                                        Email Notifications
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="browserAlerts" checked>
+                                                    <label class="form-check-label" for="browserAlerts">
+                                                        Browser Notifications
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bi bi-check-lg me-2"></i>Save Settings
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings Tab -->
+                    <div id="settings" class="tab-content">
+                        <div class="page-header">
+                            <h1 class="page-title">System Settings</h1>
+                            <p class="page-subtitle">Configure your inventory management system preferences.</p>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title">General Settings</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="generalSettingsForm">
+                                            <div class="mb-3">
+                                                <label for="companyName" class="form-label">Company Name</label>
+                                                <input type="text" class="form-control" id="companyName" value="Your Company">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="currency" class="form-label">Currency</label>
+                                                <select class="form-select" id="currency">
+                                                    <option value="USD">USD ($)</option>
+                                                    <option value="EUR">EUR (€)</option>
+                                                    <option value="GBP">GBP (£)</option>
+                                                    <option value="JPY">JPY (¥)</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="timezone" class="form-label">Timezone</label>
+                                                <select class="form-select" id="timezone">
+                                                    <option value="UTC">UTC</option>
+                                                    <option value="EST">Eastern Time</option>
+                                                    <option value="PST">Pacific Time</option>
+                                                    <option value="GMT">Greenwich Mean Time</option>
+                                                </select>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bi bi-check-lg me-2"></i>Save Settings
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title">Data Management</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <h6>Backup & Restore</h6>
+                                            <p class="text-muted small">Create backups of your inventory data or restore from previous backups.</p>
+                                            <div class="d-grid gap-2">
+                                                <button class="btn btn-success" onclick="backupData()">
+                                                    <i class="bi bi-download me-2"></i>Create Backup
+                                                </button>
+                                                <button class="btn btn-warning" onclick="restoreData()">
+                                                    <i class="bi bi-upload me-2"></i>Restore Data
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        <div class="mb-3">
+                                            <h6>Reset Data</h6>
+                                            <p class="text-muted small">Clear all inventory data. This action cannot be undone.</p>
+                                            <button class="btn btn-danger" onclick="clearAllData()">
+                                                <i class="bi bi-trash me-2"></i>Clear All Data
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        let inventory = JSON.parse(localStorage.getItem('inventory')) || [];
+        let categories = JSON.parse(localStorage.getItem('categories')) || [];
+        let suppliers = JSON.parse(localStorage.getItem('suppliers')) || [];
+        let editIndex = -1;
+        let currentFilter = 'all';
+
+        // Initialize with sample data if localStorage is empty for inventory
+        if (localStorage.getItem('inventory') === null) {
+            inventory = [
+                {
+                    name: 'iPhone 15 Pro',
+                    sku: 'IPH15P-256-BLU',
+                    quantity: 25,
+                    price: 999.99,
+                    category: 'Electronics',
+                    supplier: 'TechCorp',
+                    minStock: 5,
+                    description: 'Latest iPhone with Pro features',
+                    location: 'A-1-5'
+                },
+                {
+                    name: 'Gaming Headset',
+                    sku: 'GHS-RGB-001',
+                    quantity: 3,
+                    price: 149.99,
+                    category: 'Electronics',
+                    supplier: 'TechCorp',
+                    minStock: 5,
+                    description: 'RGB Gaming Headset with 7.1 surround',
+                    location: 'A-2-3'
+                },
+                {
+                    name: 'Office Chair',
+                    sku: 'OFC-ERG-001',
+                    quantity: 15,
+                    price: 299.99,
+                    category: 'Furniture',
+                    supplier: 'FurniturePlus',
+                    minStock: 3,
+                    description: 'Ergonomic office chair with lumbar support',
+                    location: 'B-1-1'
+                },
+                {
+                    name: 'Wireless Mouse',
+                    sku: 'WMS-BLU-001',
+                    quantity: 50,
+                    price: 29.99,
+                    category: 'Electronics',
+                    supplier: 'TechCorp',
+                    minStock: 10,
+                    description: 'Bluetooth wireless mouse',
+                    location: 'A-3-2'
+                },
+                {
+                    name: 'Designer T-Shirt',
+                    sku: 'TSH-DES-M-BLK',
+                    quantity: 8,
+                    price: 39.99,
+                    category: 'Clothing',
+                    supplier: 'FashionHub',
+                    minStock: 5,
+                    description: 'Premium cotton designer t-shirt',
+                    location: 'C-1-4'
+                },
+                {
+                    name: 'Standing Desk',
+                    sku: 'SDK-ADJ-001',
+                    quantity: 12,
+                    price: 599.99,
+                    category: 'Furniture',
+                    supplier: 'FurniturePlus',
+                    minStock: 2,
+                    description: 'Height adjustable standing desk',
+                    location: 'B-2-1'
+                },
+                {
+                    name: 'Programming Book',
+                    sku: 'BK-JS-ADV-001',
+                    quantity: 20,
+                    price: 49.99,
+                    category: 'Books',
+                    supplier: 'BookWorld',
+                    minStock: 5,
+                    description: 'Advanced JavaScript Programming Guide',
+                    location: 'D-1-1'
+                },
+                {
+                    name: 'Yoga Mat',
+                    sku: 'YM-ECO-001',
+                    quantity: 30,
+                    price: 24.99,
+                    category: 'Sports',
+                    supplier: 'SportsMart',
+                    minStock: 10,
+                    description: 'Eco-friendly yoga mat',
+                    location: 'E-1-2'
+                }
+            ];
+            saveToStorage();
+        }
+
+        // Storage functions
+        function saveToStorage() {
+            localStorage.setItem('inventory', JSON.stringify(inventory));
+            localStorage.setItem('categories', JSON.stringify(categories));
+            localStorage.setItem('suppliers', JSON.stringify(suppliers));
+        }
+
+        // Utility functions
+        function calculateTotal(quantity, price) {
+            return (quantity * price).toFixed(2);
+        }
+
+        function generateSKU() {
+            return 'SKU-' + Date.now().toString(36).toUpperCase();
+        }
+
+        function getStockStatus(item) {
+            if (item.quantity <= item.minStock) {
+                return { status: 'Low Stock', class: 'badge-danger' };
+            } else if (item.quantity <= item.minStock * 2) {
+                return { status: 'Medium', class: 'badge-warning' };
+            } else {
+                return { status: 'In Stock', class: 'badge-success' };
+            }
+        }
+
+        // Tab management
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to corresponding nav item
+            event.target.closest('.nav-item').classList.add('active');
+            
+            // Load tab-specific content
+            loadTabContent(tabName);
+            
+            // Close mobile sidebar
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('show');
+            }
+        }
+
+        function loadTabContent(tabName) {
+            switch(tabName) {
+                case 'dashboard':
+                    updateDashboard();
+                    break;
+                case 'inventory':
+                    renderInventoryTable();
+                    break;
+                case 'categories':
+                    renderCategories();
+                    break;
+                case 'suppliers':
+                    renderSuppliers();
+                    break;
+                case 'analytics':
+                    renderAnalytics();
+                    break;
+                case 'alerts':
+                    renderAlerts();
+                    break;
+            }
+        }
+
+        // Dashboard functions
+        function updateDashboard() {
+            const totalItems = inventory.reduce((sum, item) => sum + item.quantity, 0);
+            const totalValue = inventory.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+            const lowStockItems = inventory.filter(item => item.quantity <= item.minStock).length;
+            const totalCategories = [...new Set(inventory.map(item => item.category))].length;
+
+            document.getElementById('totalItems').textContent = totalItems.toLocaleString();
+            document.getElementById('totalValue').textContent = '$' + totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 });
+            document.getElementById('lowStockItems').textContent = lowStockItems;
+            document.getElementById('totalCategories').textContent = totalCategories;
+        }
+
+        // Inventory management
+        function renderInventoryTable() {
+            const tableBody = document.getElementById('inventoryTable');
+            tableBody.innerHTML = '';
+            
+            let filteredInventory = inventory;
+            
+            // Apply search filter
+            const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            if (searchTerm) {
+                filteredInventory = filteredInventory.filter(item =>
+                    item.name.toLowerCase().includes(searchTerm) ||
+                    item.sku.toLowerCase().includes(searchTerm) ||
+                    item.category.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Apply category filter
+            if (currentFilter !== 'all') {
+                if (currentFilter === 'low-stock') {
+                    filteredInventory = filteredInventory.filter(item => item.quantity <= item.minStock);
+                } else {
+                    filteredInventory = filteredInventory.filter(item => item.category === currentFilter);
+                }
+            }
+            
+            filteredInventory.forEach((item, index) => {
+                const stockStatus = getStockStatus(item);
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td><code>${item.sku}</code></td>
+                    <td>
+                        <div class="fw-semibold">${item.name}</div>
+                        <small class="text-muted">${item.description || 'No description'}</small>
+                    </td>
+                    <td><span class="badge badge-primary">${item.category}</span></td>
+                    <td>${item.supplier}</td>
+                    <td>
+                        <span class="fw-semibold">${item.quantity}</span>
+                        <small class="text-muted d-block">Min: ${item.minStock}</small>
+                    </td>
+                    <td>$${item.price.toFixed(2)}</td>
+                    <td class="fw-semibold">$${calculateTotal(item.quantity, item.price)}</td>
+                    <td><small>${item.location || 'N/A'}</small></td>
+                    <td><span class="badge ${stockStatus.class}">${stockStatus.status}</span></td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary" onclick="editItem(${inventory.indexOf(item)})" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-outline-success" onclick="adjustStock(${inventory.indexOf(item)})" title="Adjust Stock">
+                                <i class="bi bi-plus-minus"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="deleteItem(${inventory.indexOf(item)})" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Form handlers
+        document.getElementById('inventoryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('itemName').value.trim();
+            const sku = document.getElementById('itemSKU').value.trim() || generateSKU();
+            const quantity = parseInt(document.getElementById('itemQuantity').value);
+            const price = parseFloat(document.getElementById('itemPrice').value);
+            const category = document.getElementById('itemCategory').value;
+            const supplier = document.getElementById('itemSupplier').value;
+            const minStock = parseInt(document.getElementById('itemMinStock').value) || 5;
+            const description = document.getElementById('itemDescription').value.trim();
+            const location = document.getElementById('itemLocation').value.trim();
+            
+            if (!name || isNaN(quantity) || isNaN(price)) {
+                showAlert('Please fill all required fields correctly', 'danger');
+                return;
+            }
+            
+            // Check for duplicate SKU
+            if (editIndex === -1 && inventory.some(item => item.sku === sku)) {
+                showAlert('SKU already exists. Please use a different SKU.', 'danger');
+                return;
+            }
+            
+            const item = { name, sku, quantity, price, category, supplier, minStock, description, location };
+            
+            console.log('inventoryForm submit: current editIndex', editIndex);
+            if (editIndex > -1) {
+                inventory[editIndex] = item;
+                editIndex = -1;
+                document.querySelector('#inventoryForm button[type=submit]').innerHTML = '<i class="bi bi-plus-lg me-2"></i>Add Item';
+                showAlert('Item updated successfully!', 'success');
+            } else {
+                inventory.push(item);
+                showAlert('Item added successfully!', 'success');
+            }
+            
+            this.reset();
+            document.getElementById('itemSKU').value = '';
+            saveToStorage();
+            renderInventoryTable();
+            updateDashboard();
+            console.log('inventoryForm submit: after save and render - inventory', inventory);
+            console.log('inventoryForm submit: after save and render - editIndex', editIndex);
+        });
+
+        function editItem(index) {
+            const item = inventory[index];
+            document.getElementById('itemName').value = item.name;
+            document.getElementById('itemSKU').value = item.sku;
+            document.getElementById('itemQuantity').value = item.quantity;
+            document.getElementById('itemPrice').value = item.price;
+            document.getElementById('itemCategory').value = item.category;
+            document.getElementById('itemSupplier').value = item.supplier;
+            document.getElementById('itemMinStock').value = item.minStock;
+            document.getElementById('itemDescription').value = item.description || '';
+            document.getElementById('itemLocation').value = item.location || '';
+            
+            editIndex = index;
+            console.log('editItem: editIndex set to', editIndex);
+            console.log('editItem function called for index:', index);
+            document.querySelector('#inventoryForm button[type=submit]').innerHTML = '<i class="bi bi-pencil me-2"></i>Update Item';
+            
+            // Scroll to form
+            document.getElementById('inventoryForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function deleteItem(index) {
+            if (confirm('Are you sure you want to delete this item?')) {
+                inventory.splice(index, 1);
+                saveToStorage();
+                renderInventoryTable();
+                updateDashboard();
+                showAlert('Item deleted successfully!', 'success');
+            }
+        }
+
+        function adjustStock(index) {
+            const item = inventory[index];
+            const newQuantity = prompt(`Adjust stock for ${item.name}\nCurrent quantity: ${item.quantity}`, item.quantity);
+            
+            if (newQuantity !== null && !isNaN(newQuantity) && newQuantity >= 0) {
+                inventory[index].quantity = parseInt(newQuantity);
+                saveToStorage();
+                renderInventoryTable();
+                updateDashboard();
+                showAlert('Stock adjusted successfully!', 'success');
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('inventoryForm').reset();
+            document.getElementById('itemSKU').value = '';
+            editIndex = -1;
+            document.querySelector('#inventoryForm button[type=submit]').innerHTML = '<i class="bi bi-plus-lg me-2"></i>Add Item';
+        }
+
+        // Search and filter functions
+        document.getElementById('searchInput')?.addEventListener('input', function() {
+            renderInventoryTable();
+        });
+
+        function filterByCategory(category) {
+            currentFilter = category;
+            
+            // Update active filter tab
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            renderInventoryTable();
+        }
+
+        // Category management
+        function renderCategories() {
+            const grid = document.getElementById('categoriesGrid');
+            grid.innerHTML = '';
+            
+            categories.forEach((category, index) => {
+                const categoryCard = document.createElement('div');
+                categoryCard.className = 'col-md-6 mb-3';
+                
+                const itemCount = inventory.filter(item => item.category === category.name).length;
+                const totalValue = inventory
+                    .filter(item => item.category === category.name)
+                    .reduce((sum, item) => sum + (item.quantity * item.price), 0);
+                
+                categoryCard.innerHTML = `
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="stat-icon me-3" style="background: ${category.color}; color: white; width: 40px; height: 40px;">
+                                    <i class="bi bi-tag"></i>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="editCategory(${index})">Edit</a></li>
+                                        <li><a class="dropdown-item text-danger" href="#" onclick="deleteCategory(${index})">Delete</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <h6 class="card-title">${category.name}</h6>
+                            <p class="card-text text-muted small">${category.description}</p>
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <div class="fw-semibold">${itemCount}</div>
+                                    <small class="text-muted">Items</small>
+                                </div>
+                                <div class="col-6">
+                                    <div class="fw-semibold">$${totalValue.toLocaleString()}</div>
+                                    <small class="text-muted">Value</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                grid.appendChild(categoryCard);
+            });
+        }
+
+        document.getElementById('categoryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('categoryName').value.trim();
+            const description = document.getElementById('categoryDescription').value.trim();
+            const color = document.getElementById('categoryColor').value;
+            
+            if (!name) {
+                showAlert('Please enter a category name', 'danger');
+                return;
+            }
+            
+            if (categories.some(cat => cat.name === name)) {
+                showAlert('Category already exists', 'danger');
+                return;
+            }
+            
+            categories.push({ name, description, color });
+            saveToStorage();
+            renderCategories();
+            this.reset();
+            showAlert('Category added successfully!', 'success');
+        });
+
+        // Supplier management
+        function renderSuppliers() {
+            const grid = document.getElementById('suppliersGrid');
+            grid.innerHTML = '';
+            
+            suppliers.forEach((supplier, index) => {
+                const supplierCard = document.createElement('div');
+                supplierCard.className = 'mb-3';
+                
+                const itemCount = inventory.filter(item => item.supplier === supplier.name).length;
+                
+                supplierCard.innerHTML = `
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="card-title">${supplier.name}</h6>
+                                    <p class="card-text">
+                                        <strong>Contact:</strong> ${supplier.contact}<br>
+                                        <strong>Email:</strong> ${supplier.email}<br>
+                                        <strong>Phone:</strong> ${supplier.phone}<br>
+                                        <strong>Items:</strong> ${itemCount}
+                                    </p>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="editSupplier(${index})">Edit</a></li>
+                                        <li><a class="dropdown-item text-danger" href="#" onclick="deleteSupplier(${index})">Delete</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                grid.appendChild(supplierCard);
+            });
+        }
+
+        document.getElementById('supplierForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('supplierName').value.trim();
+            const contact = document.getElementById('supplierContact').value.trim();
+            const email = document.getElementById('supplierEmail').value.trim();
+            const phone = document.getElementById('supplierPhone').value.trim();
+            const address = document.getElementById('supplierAddress').value.trim();
+            
+            if (!name) {
+                showAlert('Please enter a supplier name', 'danger');
+                return;
+            }
+            
+            if (suppliers.some(sup => sup.name === name)) {
+                showAlert('Supplier already exists', 'danger');
+                return;
+            }
+            
+            suppliers.push({ name, contact, email, phone, address });
+            saveToStorage();
+            renderSuppliers();
+            this.reset();
+            showAlert('Supplier added successfully!', 'success');
+        });
+
+        // Analytics functions
+        function renderAnalytics() {
+            renderTopItemsByValue();
+            renderLowStockList();
+            renderCategoryDistribution();
+        }
+
+        function renderTopItemsByValue() {
+            const topItems = inventory
+                .map(item => ({ ...item, totalValue: item.quantity * item.price }))
+                .sort((a, b) => b.totalValue - a.totalValue)
+                .slice(0, 5);
+            
+            const container = document.getElementById('topItemsByValue');
+            container.innerHTML = '';
+            
+            topItems.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'd-flex justify-content-between align-items-center mb-2 p-2 border rounded';
+                itemDiv.innerHTML = `
+                    <div>
+                        <div class="fw-semibold">${item.name}</div>
+                        <small class="text-muted">${item.quantity} × $${item.price.toFixed(2)}</small>
+                    </div>
+                    <div class="fw-semibold text-primary">$${item.totalValue.toFixed(2)}</div>
+                `;
+                container.appendChild(itemDiv);
+            });
+        }
+
+        function renderLowStockList() {
+            const lowStockItems = inventory.filter(item => item.quantity <= item.minStock);
+            
+            const container = document.getElementById('lowStockList');
+            container.innerHTML = '';
+            
+            if (lowStockItems.length === 0) {
+                container.innerHTML = '<p class="text-muted">No low stock items</p>';
+                return;
+            }
+            
+            lowStockItems.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'd-flex justify-content-between align-items-center mb-2 p-2 border rounded border-warning';
+                itemDiv.innerHTML = `
+                    <div>
+                        <div class="fw-semibold">${item.name}</div>
+                        <small class="text-muted">${item.quantity} / ${item.minStock} min</small>
+                    </div>
+                    <span class="badge badge-warning">Low</span>
+                `;
+                container.appendChild(itemDiv);
+            });
+        }
+
+        function renderCategoryDistribution() {
+            const categoryStats = {};
+            
+            inventory.forEach(item => {
+                if (!categoryStats[item.category]) {
+                    categoryStats[item.category] = { count: 0, value: 0 };
+                }
+                categoryStats[item.category].count += item.quantity;
+                categoryStats[item.category].value += item.quantity * item.price;
+            });
+            
+            const container = document.getElementById('categoryDistribution');
+            container.innerHTML = '';
+            
+            Object.entries(categoryStats).forEach(([category, stats]) => {
+                const percentage = (stats.count / inventory.reduce((sum, item) => sum + item.quantity, 0) * 100).toFixed(1);
+                
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'mb-3';
+                itemDiv.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="fw-semibold">${category}</span>
+                        <span class="text-muted">${percentage}%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar" style="width: ${percentage}%"></div>
+                    </div>
+                    <small class="text-muted">${stats.count} items • $${stats.value.toLocaleString()}</small>
+                `;
+                container.appendChild(itemDiv);
+            });
+        }
+
+        // Alerts functions
+        function renderAlerts() {
+            const alertsContainer = document.getElementById('alertsList');
+            alertsContainer.innerHTML = '';
+            
+            const lowStockItems = inventory.filter(item => item.quantity <= item.minStock);
+            const outOfStockItems = inventory.filter(item => item.quantity === 0);
+            
+            // Low stock alerts
+            lowStockItems.forEach(item => {
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-warning d-flex justify-content-between align-items-center';
+                alert.innerHTML = `
+                    <div>
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Low Stock:</strong> ${item.name} (${item.quantity} remaining)
+                    </div>
+                    <button class="btn btn-sm btn-outline-warning" onclick="adjustStock(${inventory.indexOf(item)})">
+                        Restock
+                    </button>
+                `;
+                alertsContainer.appendChild(alert);
+            });
+            
+            // Out of stock alerts
+            outOfStockItems.forEach(item => {
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger d-flex justify-content-between align-items-center';
+                alert.innerHTML = `
+                    <div>
+                        <i class="bi bi-x-circle me-2"></i>
+                        <strong>Out of Stock:</strong> ${item.name}
+                    </div>
+                    <button class="btn btn-sm btn-outline-danger" onclick="adjustStock(${inventory.indexOf(item)})">
+                        Restock
+                    </button>
+                `;
+                alertsContainer.appendChild(alert);
+            });
+            
+            if (lowStockItems.length === 0 && outOfStockItems.length === 0) {
+                alertsContainer.innerHTML = `
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle me-2"></i>
+                        All items are adequately stocked!
+                    </div>
+                `;
+            }
+        }
+
+        // Utility functions
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
+
+        // Export/Import functions
+        function exportInventory() {
+            const dataStr = JSON.stringify(inventory, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'inventory_export.json';
+            link.click();
+            URL.revokeObjectURL(url);
+            showAlert('Inventory exported successfully!', 'success');
+        }
+
+        function importInventory() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const importedData = JSON.parse(e.target.result);
+                            if (Array.isArray(importedData)) {
+                                inventory = importedData;
+                                saveToStorage();
+                                renderInventoryTable();
+                                updateDashboard();
+                                showAlert('Inventory imported successfully!', 'success');
+                            } else {
+                                showAlert('Invalid file format', 'danger');
+                            }
+                        } catch (error) {
+                            showAlert('Error reading file', 'danger');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+        // Data management functions
+        function backupData() {
+            const backupData = {
+                inventory,
+                categories,
+                suppliers,
+                timestamp: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(backupData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `inventory_backup_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            showAlert('Backup created successfully!', 'success');
+        }
+
+        function restoreData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const backupData = JSON.parse(e.target.result);
+                            if (backupData.inventory && backupData.categories && backupData.suppliers) {
+                                inventory = backupData.inventory;
+                                categories = backupData.categories;
+                                suppliers = backupData.suppliers;
+                                console.log('clearAllData: Before saveToStorage and reload - inventory:', inventory);
+                console.log('clearAllData: Before saveToStorage and reload - categories:', categories);
+                console.log('clearAllData: Before saveToStorage and reload - suppliers:', suppliers);
+                saveToStorage();
+                location.reload();
+                            } else {
+                                showAlert('Invalid backup file format', 'danger');
+                            }
+                        } catch (error) {
+                            showAlert('Error reading backup file', 'danger');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+                if (confirm('This will permanently delete all inventory, categories, and suppliers. Continue?')) {
+                    localStorage.clear();
+                    inventory = [];
+                    categories = [];
+                    suppliers = [];
+                    saveToStorage(); // Persist the empty state
+                    location.reload(); // Reload the application to reflect the cleared state
+                }
+            }
+        }
+
+        // Form handlers for settings
+        document.getElementById('reportForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            showAlert('Report generation feature coming soon!', 'info');
+        });
+
+        document.getElementById('alertSettingsForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            showAlert('Alert settings saved successfully!', 'success');
+        });
+
+        document.getElementById('generalSettingsForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            showAlert('Settings saved successfully!', 'success');
+        });
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDashboard();
+            renderInventoryTable();
+            resetForm();
+            console.log('DOMContentLoaded: inventory', inventory);
+            console.log('DOMContentLoaded: categories', categories);
+            console.log('DOMContentLoaded: suppliers', suppliers);
+            console.log('DOMContentLoaded: editIndex', editIndex);
+            
+            // Set current date for report form
+            const today = new Date().toISOString().split('T')[0];
+            const reportDateInput = document.getElementById('reportDate');
+            if (reportDateInput) {
+                reportDateInput.value = today;
+            }
+
+            // Hide loading overlay
+            document.getElementById('loading-overlay').classList.add('hidden');
+        });
+
+        // Close mobile sidebar when clicking outside
+        document.addEventListener('click', function(e) {
+            const sidebar = document.getElementById('sidebar');
+            const menuBtn = document.querySelector('.mobile-menu-btn');
+            
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(e.target) && 
+                !menuBtn.contains(e.target) && 
+                sidebar.classList.contains('show')) {
+                sidebar.classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html>
+
